@@ -1,0 +1,30 @@
+{
+    "table_name": "user",
+    "columns": [
+        {
+            "name": "id",
+            "type": "int",
+            "primary_key": true
+        },
+        {
+            "name": "name",
+            "type": "string"
+        },
+        {
+            "name": "age",
+            "type": "int"
+        },
+        {
+            "name": "email",
+            "type": "string"
+        },
+        {
+            "name": "password",
+            "type": "string"
+        }
+    ],
+    "join": [],
+    "where":[],
+    "limit": 10,
+    "offset": 0
+}

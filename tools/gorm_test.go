@@ -6,5 +6,5 @@ import (
 )
 
 func TestXxx(t *testing.T) {
-	List(nil, src.DemoTest{})
+	List(nil, src.DemoTest{}, "name")
 }

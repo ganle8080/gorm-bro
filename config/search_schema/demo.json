@@ -1,0 +1,57 @@
+{
+    "table_name": "demo",
+    "columns": [
+        {
+            "name": "id",
+            "type": "int",
+            "is_primary": true
+        },
+        {
+            "name": "name",
+            "type": "string"
+        },
+        {
+            "name": "age",
+            "type": "int"
+        },
+        {
+            "name": "address",
+            "type": "string"
+        },
+        {
+            "name": "phone",
+            "type": "string"
+        },
+        {
+            "name": "email",
+            "type": "string"
+        },
+        {
+            "name": "created_at",
+            "type": "datetime"
+        },
+        {
+            "name": "updated_at",
+            "type": "datetime"
+        }
+    ],
+    "where":[
+        {
+            "id": "id"
+        }
+    ],
+    "join": [
+        {
+            "table": "demo",
+            "column": "id",
+            "join_table": "demo",
+            "join_column": "id"
+        }
+    ],
+    "order_by": [
+        {
+            "column": "id",
+            "type": "asc"
+        }
+    ]
+}

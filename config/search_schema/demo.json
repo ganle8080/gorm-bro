@@ -2,9 +2,9 @@
     "table_name": "demo",
     "columns": [
         {
-            "name": "id",
+            "name": "demo.id",
             "type": "int",
-            "is_primary": true
+            "alias": "Id"
         },
         {
             "name": "name",
@@ -37,7 +37,8 @@
     ],
     "where":[
         {
-            "id": "id"
+            "id": "id",
+            "type": "int"
         }
     ],
     "join": [

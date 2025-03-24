@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -11,19 +12,27 @@ import (
 func List(db *gorm.DB, object interface{}, a ...string) {
 	// 如果object是值对象，获取其指针
 	objType := reflect.TypeOf(object)
+	var objPtr interface{}
 	if objType.Kind() != reflect.Ptr {
-		object = reflect.New(objType).Interface()
+		objPtr = reflect.New(objType).Interface() // 新建指针对象
+	} else {
+		objPtr = object // 如果已经是指针，直接使用
 	}
 
+	// 将object转换成json打印
+
+	data, _ := json.Marshal(objPtr)
+
+	fmt.Printf("objPtr: %v\n", string(data))
 	// 如果a有值，打印第一个值
 	if len(a) > 0 {
 		fmt.Printf("a[0]: %v\n", a)
 	}
 
-	fmt.Printf("tableName: %v\n", getTableName(object))
+	fmt.Printf("tableName: %v\n", getTableName(objPtr))
 
 	// 获取object的字段名，将其转换为蛇形命名
-	fmt.Printf("columns: %v\n", getColumns(object))
+	fmt.Printf("columns: %v\n", getColumns(objPtr))
 }
 
 // select demo_test.id ... from demo_test where
@@ -64,6 +73,7 @@ func getColumns(object interface{}) []string {
 
 	return columns
 }
+
 func getTableName(object interface{}) string {
 	// 获取object的结构体名称作为表名
 	tableName := reflect.TypeOf(object).Elem().Name()
@@ -76,7 +86,6 @@ func getTableName(object interface{}) string {
 	return toSnakeCase(tableName)
 }
 
-// 将驼峰命名转换成为蛇形命名
 // 将驼峰命名转换成为蛇形命名
 func toSnakeCase(name string) string {
 	// 特殊处理：如果字段名是 "ID"，直接返回 "id"

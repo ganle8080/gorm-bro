@@ -1,0 +1,15 @@
+{
+    "schema_name": "demo_test",
+    "search_type": "page",
+    "columns":[],
+    "conditions":[
+        {
+            "column": "name",
+            "value": "test",
+            "operator": "eq"
+        }
+    ],
+    "order_by": [],
+    "limit": 10,
+    "offset": 0
+}

@@ -17,7 +17,9 @@ type SearchSchema struct {
 }
 
 type SearchSchemaColumns struct {
-	Name string `json:"name"`
+	FieldName string `json:"field_name"`
+	Alias     string `json:"alias"`
+	Handler   string `json:"handler"`
 }
 
 type SearchSchemaConditions struct {
@@ -56,75 +58,52 @@ type SearchCondition struct {
 
 func Search(form map[string]interface{}, db *gorm.DB) {
 	// 将form转换成SearchData
-
 	data, err := json.Marshal(form)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 	}
 
 	searchData := SearchData{}
-
 	json.Unmarshal(data, &searchData)
-
-	fmt.Printf("searchData: %v\n", searchData)
 
 	// 加载schema文件
 	searchSchema := LoadSchema("demo")
 
-	sqlStr := buildSqlStr(searchData, searchSchema)
+	fields, handlers := getFieldsAndHandlers(searchData.Columns, searchSchema.Columns)
 
-	result := []map[string]interface{}{}
+	fieldStr := strings.Join(fields, ",")
 
-	db.Raw(sqlStr).Scan(&result)
-	fmt.Printf("result: %v\n", result)
-}
-
-func buildSqlStr(searchData SearchData, searchSchema SearchSchema) string {
-	fieldStr := buildFields(searchData.Columns, searchSchema.Columns)
 	whereStr := buildWhere(searchData.Conditions, searchSchema.Conditions)
-	orderStr := buildOrderByStr(searchData.OrderBy)
-	pageStr := buildPageStr(searchData.Page, searchData.Size)
 
-	sqlStr := fmt.Sprintf("select %s from %s where %s", fieldStr, searchSchema.TableName, whereStr)
+	sqlStr := fmt.Sprintf("SELECT %s FROM %s WHERE %s", fieldStr, searchSchema.TableName, whereStr)
+
+	orderStr := buildOrderByStr(searchData.OrderBy)
 
 	if len(orderStr) > 0 {
-		sqlStr += "order by" + orderStr
+		sqlStr += "ORDER BY " + orderStr
 	}
+
+	pageStr := buildPageStr(searchData.Page, searchData.Size)
 
 	if len(pageStr) > 0 {
 		sqlStr += pageStr
 	}
 
-	return sqlStr
-}
+	result := []map[string]interface{}{}
 
-// select * from demo_test
-func buildFields(arr []string, arr2 []SearchSchemaColumns) string {
+	db.Raw(sqlStr).Scan(&result)
 
-	result := []string{}
+	fmt.Printf("sqlStr: %v\n", sqlStr)
 
-	// 先判断arr是否大于0
+	// if len(result) > 0 {
+	// 	for _, v := range result {
 
-	if len(arr) > 0 {
-		// 将arr转换成map
-		arrMap := map[string]interface{}{}
+	// 	}
+	// }
 
-		for _, v := range arr {
-			arrMap[v] = nil
-		}
+	fmt.Printf("handlers: %v\n", handlers)
 
-		for _, v := range arr2 {
-			if _, ok := arrMap[v.Name]; ok {
-				result = append(result, v.Name)
-			}
-		}
-	} else {
-		for _, v := range arr2 {
-			result = append(result, v.Name)
-		}
-	}
-
-	return strings.Join(result, ",")
+	// 指定handler包下执行某个方法
 }
 
 func buildWhere(arr []SearchCondition, arr2 []SearchSchemaConditions) string {
@@ -162,5 +141,55 @@ func buildPageStr(page int, size int) string {
 
 	offset := (page - 1) * size
 
-	return fmt.Sprintf("limit %v offset %v", size, offset)
+	return fmt.Sprintf("LIMIT %v OFFSET %v", size, offset)
+}
+
+type FieldHandler struct {
+	Name       string
+	MethodName string
+	Args       []string
+}
+
+func getFieldsAndHandlers(searchColumns []string, definedColumns []SearchSchemaColumns) (searchFieldList []string, deferHandlerList []FieldHandler) {
+	// 判断searchColumns的长度
+	if len(searchColumns) > 0 {
+		complieMap := map[string]string{}
+		for _, v := range searchColumns {
+			complieMap[v] = ""
+		}
+		for _, v := range definedColumns {
+			if _, ok := complieMap[v.Alias]; ok {
+				if v.FieldName != "null" && v.FieldName != "" {
+					searchFieldList = append(searchFieldList, fmt.Sprintf("%s AS %s", v.FieldName, v.Alias))
+				}
+				if v.Handler != "null" && v.Handler != "" {
+					handlerStr := strings.Split(v.Handler, ";")
+					// 这里会出现错误，做好错误处理
+					fieldHandler := FieldHandler{
+						Name:       v.Alias,
+						MethodName: handlerStr[0],
+						Args:       handlerStr[1:],
+					}
+					deferHandlerList = append(deferHandlerList, fieldHandler)
+				}
+			}
+		}
+	} else {
+		for _, v := range definedColumns {
+			if v.FieldName != "null" && v.FieldName != "" {
+				searchFieldList = append(searchFieldList, fmt.Sprintf("%s AS %s", v.FieldName, v.Alias))
+			}
+			if v.Handler != "null" && v.Handler != "" {
+				handlerStr := strings.Split(v.Handler, ";")
+				// 这里会出现错误，做好错误处理
+				fieldHandler := FieldHandler{
+					Name:       v.Alias,
+					MethodName: handlerStr[0],
+					Args:       handlerStr[1:],
+				}
+				deferHandlerList = append(deferHandlerList, fieldHandler)
+			}
+		}
+	}
+	return
 }

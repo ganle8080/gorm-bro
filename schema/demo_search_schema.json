@@ -3,25 +3,44 @@
     "order":["id desc"],
     "columns":[
         {
-            "name":"id"
+            "field_name":"demo_test.id",
+            "alias":"id",
+            "handler":""
         },
         {
-            "name":"created_at"
+            "field_name":"demo_test.created_at",
+            "alias":"created_at",
+            "handler":""
         },
         {
-            "name":"updated_at"
+            "field_name":"demo_test.updated_at",
+            "alias":"updated_at",
+            "handler":""
         },
         {
-            "name":"deleted_at"
+            "field_name":"demo_test.deleted_at",
+            "alias":"deleted_at",
+            "handler":"null"
         },
         {
-            "name":"name"
+            "field_name":"demo_test.name",
+            "alias":"name",
+            "handler":""
         },
         {
-            "name":"age"
+            "field_name":"demo_test.age",
+            "alias":"age",
+            "handler":""
         },
         {
-            "name":"money"
+            "field_name":"demo_test.money",
+            "alias":"money",
+            "handler":""
+        },
+        {
+            "field_name":"null",
+            "alias":"moneyStr",
+            "handler":"DemoTestHandler.AppendStr;money;age"
         }
     ],
     "conditions":[

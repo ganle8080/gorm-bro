@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"gorm-bro/src"
+	"gorm-bro/tools"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -15,7 +15,23 @@ func main() {
 		panic(err)
 	}
 
-	demoTest := src.DemoTest{}
 	fmt.Printf("db: %v\n", db)
-	fmt.Printf("demoTest: %v\n", demoTest)
+
+	map1 := map[string]interface{}{
+		"table_name":  "demo_test",
+		"search_type": "list",
+		"order_by":    []string{},
+		"columns":     []string{},
+		"conditions": []map[string]interface{}{
+			{
+				"name":  "name",
+				"type":  "eq",
+				"value": "helloworld",
+			},
+		},
+		"page": 1,
+		"size": 20,
+	}
+
+	tools.Search(map1, db)
 }

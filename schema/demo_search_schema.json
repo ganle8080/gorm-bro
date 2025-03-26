@@ -1,0 +1,50 @@
+{
+    "table_name": "demo_test",
+    "order":["id desc"],
+    "columns":[
+        {
+            "name":"id"
+        },
+        {
+            "name":"created_at"
+        },
+        {
+            "name":"updated_at"
+        },
+        {
+            "name":"deleted_at"
+        },
+        {
+            "name":"name"
+        },
+        {
+            "name":"age"
+        },
+        {
+            "name":"money"
+        }
+    ],
+    "conditions":[
+        {
+            "name":"id"
+        },
+        {
+            "name":"created_at"
+        },
+        {
+            "name":"updated_at"
+        },
+        {
+            "name":"deleted_at"
+        },
+        {
+            "name":"name"
+        },
+        {
+            "name":"age"
+        },
+        {
+            "name":"money"
+        }
+    ]
+}

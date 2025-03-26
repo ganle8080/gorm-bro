@@ -1,5 +1,6 @@
 {
     "table_name": "demo",
+    "orderby":[],
     "columns": [
         {
             "name": "demo.id",
@@ -35,24 +36,18 @@
             "type": "datetime"
         }
     ],
-    "where":[
+    "conditions":[
         {
             "id": "id",
             "type": "int"
         }
     ],
-    "join": [
+    "joins": [
         {
             "table": "demo",
             "column": "id",
             "join_table": "demo",
             "join_column": "id"
-        }
-    ],
-    "order_by": [
-        {
-            "column": "id",
-            "type": "asc"
         }
     ]
 }

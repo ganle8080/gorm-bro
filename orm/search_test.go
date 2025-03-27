@@ -82,5 +82,6 @@ func TestSearch(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(Search(db, map1))
+	result, _ := Search(db, map1)
+	fmt.Printf("result: %v\n", result)
 }

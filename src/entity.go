@@ -14,3 +14,13 @@ type DemoTest struct {
 func (d *DemoTest) TableName() string {
 	return "demo_test"
 }
+
+type DemoOther struct {
+	gorm.Model
+	DemoId uint
+	Name   string
+}
+
+func (o *DemoOther) TableName() string {
+	return "demo_other"
+}

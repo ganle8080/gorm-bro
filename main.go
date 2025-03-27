@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"gorm-bro/src"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -16,5 +17,5 @@ func main() {
 	}
 
 	fmt.Printf("db: %v\n", db)
-
+	db.AutoMigrate(&src.DemoOther{})
 }

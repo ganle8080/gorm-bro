@@ -10,7 +10,15 @@ type SearchSchema struct {
 	TableName  string                   `json:"table_name"`
 	Order      []string                 `json:"order"`
 	Columns    []SearchSchemaColumns    `json:"columns"`
+	Joins      []SearchJoins            `json:"joins"`
 	Conditions []SearchSchemaConditions `json:"conditions"`
+}
+
+type SearchJoins struct {
+	JoinColumn       string `json:"join_column"`
+	TargetTableName  string `json:"target_table_name"`
+	TargetJoinColumn string `json:"target_join_column"`
+	JoinType         string `json:"join_type"`
 }
 
 type SearchSchemaColumns struct {

@@ -59,6 +59,7 @@ func TestSearch(t *testing.T) {
 		"search_type": "search",
 		"order_by":    []string{},
 		"columns":     []string{},
+		"joins":       []string{"demo_other"},
 		"conditions": []map[string]interface{}{
 			{
 				"name":  "money",
@@ -81,5 +82,5 @@ func TestSearch(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(Search(db, &map1))
+	fmt.Println(Search(db, map1))
 }

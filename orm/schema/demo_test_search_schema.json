@@ -43,6 +43,20 @@
             "field_name": "null",
             "alias": "moneyStr",
             "handler": "DemoTestHandler.AppendStr;money"
+        },
+        {
+            "field_name": "demo_other.name",
+            "alias": "otherName",
+            "handler": ""
+        }
+    ],
+    "joins":[
+        {
+            "join_column":"id",
+            "target_table_name":"demo_other",
+            "target_join_column":"demo_id",
+            "join_type":"LEFT JOIN"
+
         }
     ],
     "conditions": [

@@ -15,6 +15,7 @@ type SearchData struct {
 	SearchType string            `json:"search_type"`
 	OrderBy    []string          `json"order_by`
 	Columns    []string          `json:"columns"`
+	Joins      []string          `json:"joins"`
 	Conditions []SearchCondition `json:"conditions"`
 	Page       int               `json:"page"`
 	Size       int               `json:"size"`
@@ -26,7 +27,7 @@ type SearchCondition struct {
 	Value interface{} `json:"value"`
 }
 
-func Search(db *gorm.DB, form *map[string]interface{}) (interface{}, error) {
+func Search(db *gorm.DB, form map[string]interface{}) (interface{}, error) {
 
 	// 将map数据格式化成struct
 	data, err := json.Marshal(form)
@@ -57,8 +58,14 @@ func Search(db *gorm.DB, form *map[string]interface{}) (interface{}, error) {
 	// 获取sql查询where部分字符串
 	whereStr := buildWhereAndHandlers(searchData.Conditions, searchSchema.Conditions)
 
+	joinStr := buildJoins(searchSchema.TableName, searchData.Joins, searchSchema.Joins)
+
+	if len(joinStr) > 0 {
+		sqlStr += joinStr
+	}
+
 	if len(whereStr) > 0 {
-		sqlStr = fmt.Sprintf("SELECT %s FROM %s WHERE %s", columnStr, searchSchema.TableName, whereStr)
+		sqlStr = fmt.Sprintf("%s WHERE %s", sqlStr, whereStr)
 	}
 
 	orderStr := buildOrderByStr(searchData.OrderBy)
@@ -129,32 +136,26 @@ func Search(db *gorm.DB, form *map[string]interface{}) (interface{}, error) {
 	return result, nil
 }
 
-// func buildWhere(searchCondition []SearchCondition, searchSchemaConditions []SearchSchemaConditions) string {
-// 	result := []string{}
+func buildJoins(tableName string, joins []string, searchSchemaJoins []SearchJoins) string {
 
-// 	if len(searchCondition) > 0 {
-// 		whereMap := map[string]SearchSchemaConditions{}
-// 		for _, v := range searchSchemaConditions {
-// 			whereMap[v.FieldName] = v
-// 		}
+	result := []string{}
 
-// 		for _, v := range searchCondition {
-// 			if _, ok := whereMap[v.Name]; ok {
-// 				switch v.Type {
-// 				case "eq":
-// 					result = append(result, v.Name+"="+"'"+v.Value+"'")
-// 				case "gt":
-// 				case "lt":
-// 				case "like":
-// 				default:
-// 				}
+	joinSchemaMap := map[string]SearchJoins{}
 
-// 			}
-// 		}
-// 	}
+	for _, v := range searchSchemaJoins {
+		joinSchemaMap[v.TargetTableName] = v
+	}
 
-// 	return strings.Join(result, ", ")
-// }
+	for _, s := range joins {
+		if joinSchema, ok := joinSchemaMap[s]; ok {
+			joinStr := fmt.Sprintf("%s %s ON %s.%s = %s.%s", joinSchema.JoinType, joinSchema.TargetTableName, tableName, joinSchema.JoinColumn, joinSchema.TargetTableName, joinSchema.TargetJoinColumn)
+
+			result = append(result, joinStr)
+		}
+	}
+
+	return strings.Join(result, " ")
+}
 
 func buildWhereAndHandlers(searchCondition []SearchCondition, searchSchemaConditions []SearchSchemaConditions) string {
 	result := []string{}

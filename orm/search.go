@@ -67,7 +67,7 @@ func Search(form map[string]interface{}, db *gorm.DB) {
 	json.Unmarshal(data, &searchData)
 
 	// 加载schema文件
-	searchSchema := LoadSchema("demo")
+	searchSchema := LoadSchema("demo_test")
 
 	fields, handlers := getFieldsAndHandlers(searchData.Columns, searchSchema.Columns)
 

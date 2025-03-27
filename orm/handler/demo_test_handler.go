@@ -2,17 +2,18 @@ package handler
 
 import (
 	"fmt"
-
-	"gorm.io/gorm"
 )
 
 // DemoTestHandler 示例处理器
 type DemoTestHandler struct {
-	db gorm.DB
 }
 
 // AppendStr 示例方法
-func (h *DemoTestHandler) AppendStr(money interface{}) string {
-	fmt.Printf("h.db: %v\n", h.db)
-	return "Hello, World!" + fmt.Sprintf("%v", money)
+func (h *DemoTestHandler) AppendStr(args ...interface{}) interface{} {
+	return "Hello, World!" + fmt.Sprintf("%v", args[0])
+}
+
+func (h *DemoTestHandler) AddMoney(args ...interface{}) interface{} {
+	fmt.Printf("args: %v\n", args)
+	return 0
 }

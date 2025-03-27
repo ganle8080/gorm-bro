@@ -1,69 +1,78 @@
 {
     "table_name": "demo_test",
-    "order":["id desc"],
-    "columns":[
+    "order": [
+        "id desc"
+    ],
+    "columns": [
         {
-            "field_name":"demo_test.id",
-            "alias":"id",
-            "handler":""
+            "field_name": "demo_test.id",
+            "alias": "id",
+            "handler": ""
         },
         {
-            "field_name":"demo_test.created_at",
-            "alias":"created_at",
-            "handler":""
+            "field_name": "demo_test.created_at",
+            "alias": "created_at",
+            "handler": ""
         },
         {
-            "field_name":"demo_test.updated_at",
-            "alias":"updated_at",
-            "handler":""
+            "field_name": "demo_test.updated_at",
+            "alias": "updated_at",
+            "handler": ""
         },
         {
-            "field_name":"demo_test.deleted_at",
-            "alias":"deleted_at",
-            "handler":"null"
+            "field_name": "demo_test.deleted_at",
+            "alias": "deleted_at",
+            "handler": "null"
         },
         {
-            "field_name":"demo_test.name",
-            "alias":"name",
-            "handler":""
+            "field_name": "demo_test.name",
+            "alias": "name",
+            "handler": ""
         },
         {
-            "field_name":"demo_test.age",
-            "alias":"age",
-            "handler":""
+            "field_name": "demo_test.age",
+            "alias": "age",
+            "handler": ""
         },
         {
-            "field_name":"demo_test.money",
-            "alias":"money",
-            "handler":""
+            "field_name": "demo_test.money",
+            "alias": "money",
+            "handler": ""
         },
         {
-            "field_name":"null",
-            "alias":"moneyStr",
-            "handler":"DemoTestHandler.AppendStr;money"
+            "field_name": "null",
+            "alias": "moneyStr",
+            "handler": "DemoTestHandler.AppendStr;money"
         }
     ],
-    "conditions":[
+    "conditions": [
         {
-            "name":"id"
+            "field_name": "id",
+            "handler": ""
         },
         {
-            "name":"created_at"
+            "field_name": "created_at",
+            "handler": ""
         },
         {
-            "name":"updated_at"
+            "field_name": "updated_at",
+            "handler": ""
         },
         {
-            "name":"deleted_at"
+            "field_name": "deleted_at",
+            "handler": ""
         },
         {
-            "name":"name"
+            "field_name": "name",
+            "handler": ""
         },
         {
-            "name":"age"
+            "field_name": "age",
+            "handler": ""
         },
         {
-            "name":"money"
+            "field_name": "money",
+            "handler": "DemoTestHandler.AddMoney;money;age"
         }
     ]
 }

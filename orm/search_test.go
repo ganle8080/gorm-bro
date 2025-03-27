@@ -32,7 +32,7 @@ func TestHandler(t *testing.T) {
 	}
 
 	// 创建处理器实例
-	instance, err := factory(db)
+	instance, err := factory()
 	if err != nil {
 		fmt.Printf("Failed to create handler instance: %v\n", err)
 		return
@@ -56,12 +56,23 @@ func TestHandler(t *testing.T) {
 func TestSearch(t *testing.T) {
 	map1 := map[string]interface{}{
 		"table_name":  "demo_test",
-		"search_type": "list",
+		"search_type": "search",
 		"order_by":    []string{},
 		"columns":     []string{},
-		"conditions":  []map[string]interface{}{},
-		"page":        1,
-		"size":        20,
+		"conditions": []map[string]interface{}{
+			{
+				"name":  "money",
+				"type":  "eq",
+				"value": 1.3,
+			},
+			{
+				"name":  "age",
+				"type":  "eq",
+				"value": 3,
+			},
+		},
+		"page": 1,
+		"size": 20,
 	}
 
 	// 初始化数据库连接
@@ -70,5 +81,5 @@ func TestSearch(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	Search(map1, db)
+	fmt.Println(Search(db, &map1))
 }

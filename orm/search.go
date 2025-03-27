@@ -11,43 +11,54 @@ import (
 )
 
 type SearchData struct {
-	TableName  string
-	SearchType string
-	OrderBy    []string
-	Columns    []string
-	Conditions []SearchCondition
-	Page       int
-	Size       int
+	TableName  string            `json:"table_name"`
+	SearchType string            `json:"search_type"`
+	OrderBy    []string          `json"order_by`
+	Columns    []string          `json:"columns"`
+	Conditions []SearchCondition `json:"conditions"`
+	Page       int               `json:"page"`
+	Size       int               `json:"size"`
 }
 
 type SearchCondition struct {
-	Name  string
-	Type  string
-	Value string
+	Name  string      `json:"name"`
+	Type  string      `json:"type"`
+	Value interface{} `json:"value"`
 }
 
-func Search(form map[string]interface{}, db *gorm.DB) {
-	// 将form转换成SearchData
+func Search(db *gorm.DB, form *map[string]interface{}) (interface{}, error) {
+
+	// 将map数据格式化成struct
 	data, err := json.Marshal(form)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
+		return nil, err
+	}
+	searchData := &SearchData{}
+	jsonErr := json.Unmarshal(data, searchData)
+	if jsonErr != nil {
+		return nil, err
 	}
 
-	searchData := SearchData{}
-	json.Unmarshal(data, &searchData)
+	// 加载对应的操作schema文件
+	searchSchema, err := LoadJsonSchema(searchData.TableName, "search")
+	if err != nil {
+		return nil, err
+	}
 
-	// 加载schema文件
-	searchSchema := LoadSchema("demo_test")
-
+	// 获取需要查询的字段
+	// fields是需要进行查询的字段，handlers是后续要对字段进行处理的操作
 	fields, handlers := getFieldsAndHandlers(searchData.Columns, searchSchema.Columns)
 
-	fieldStr := strings.Join(fields, ",")
+	// 获取sql查询column部分字符串
+	columnStr := strings.Join(fields, ", ")
 
-	whereStr := buildWhere(searchData.Conditions, searchSchema.Conditions)
+	sqlStr := fmt.Sprintf("SELECT %s FROM %s ", columnStr, searchSchema.TableName)
 
-	sqlStr := fmt.Sprintf("SELECT %s FROM %s ", fieldStr, searchSchema.TableName)
+	// 获取sql查询where部分字符串
+	whereStr := buildWhereAndHandlers(searchData.Conditions, searchSchema.Conditions)
+
 	if len(whereStr) > 0 {
-		sqlStr = fmt.Sprintf("SELECT %s FROM %s WHERE %s", fieldStr, searchSchema.TableName, whereStr)
+		sqlStr = fmt.Sprintf("SELECT %s FROM %s WHERE %s", columnStr, searchSchema.TableName, whereStr)
 	}
 
 	orderStr := buildOrderByStr(searchData.OrderBy)
@@ -64,11 +75,13 @@ func Search(form map[string]interface{}, db *gorm.DB) {
 
 	result := []map[string]interface{}{}
 
+	fmt.Printf("sqlStr: %v\n", sqlStr)
 	db.Raw(sqlStr).Scan(&result)
 
-	if len(result) > 0 {
+	if len(result) > 0 && len(handlers) > 0 {
+		// 遍历查询结果
 		for _, obj := range result {
-
+			// 遍历handler
 			for _, h := range handlers {
 
 				argList := []reflect.Value{}
@@ -77,7 +90,6 @@ func Search(form map[string]interface{}, db *gorm.DB) {
 				// 获取方法名称
 				handlerName := h.HandlerName
 				methodName := h.MethodName
-
 				for _, v := range h.Args {
 					argList = append(argList, reflect.ValueOf(obj[v]))
 				}
@@ -86,51 +98,129 @@ func Search(form map[string]interface{}, db *gorm.DB) {
 				factory, ok := handler.GetHandlerFactory(handlerName)
 				if !ok {
 					fmt.Printf("Handler not found: %s\n", handlerName)
-					return
+					// 记录日志处理
+					break
 				}
-
 				// 创建处理器实例
-				instance, err := factory(db)
+				instance, err := factory()
 				if err != nil {
 					fmt.Printf("Failed to create handler instance: %v\n", err)
-					return
+					// 记录日志处理
+					break
 				}
 
 				// 使用反射查找方法
 				method := reflect.ValueOf(instance).MethodByName(methodName)
 				if !method.IsValid() {
 					fmt.Printf("Method not found: %s\n", methodName)
-					return
+					// 记录日志处理
+					break
 				}
 
 				// 调用方法
 				results := method.Call(argList) // 如果方法有参数，可以在这里传入参数切片
 				if len(results) > 0 {
-					fmt.Printf("Method result: %v\n", results[0].Interface())
+					obj[fieldName] = results[0].Interface()
 				}
-				obj[fieldName] = results[0]
 			}
 		}
 	}
 
-	// 指定handler包下执行某个方法
-	fmt.Printf("result: %v\n", result)
+	return result, nil
 }
 
-func buildWhere(arr []SearchCondition, arr2 []SearchSchemaConditions) string {
+// func buildWhere(searchCondition []SearchCondition, searchSchemaConditions []SearchSchemaConditions) string {
+// 	result := []string{}
+
+// 	if len(searchCondition) > 0 {
+// 		whereMap := map[string]SearchSchemaConditions{}
+// 		for _, v := range searchSchemaConditions {
+// 			whereMap[v.FieldName] = v
+// 		}
+
+// 		for _, v := range searchCondition {
+// 			if _, ok := whereMap[v.Name]; ok {
+// 				switch v.Type {
+// 				case "eq":
+// 					result = append(result, v.Name+"="+"'"+v.Value+"'")
+// 				case "gt":
+// 				case "lt":
+// 				case "like":
+// 				default:
+// 				}
+
+// 			}
+// 		}
+// 	}
+
+// 	return strings.Join(result, ", ")
+// }
+
+func buildWhereAndHandlers(searchCondition []SearchCondition, searchSchemaConditions []SearchSchemaConditions) string {
 	result := []string{}
 
-	if len(arr) > 0 {
+	if len(searchCondition) > 0 {
 		whereMap := map[string]SearchSchemaConditions{}
-		for _, v := range arr2 {
-			whereMap[v.Name] = v
+		for _, v := range searchSchemaConditions {
+			whereMap[v.FieldName] = v
 		}
 
-		for _, v := range arr {
-			if _, ok := whereMap[v.Name]; ok {
-				switch v.Type {
+		conditionMap := map[string]SearchCondition{}
+		for _, v := range searchCondition {
+			conditionMap[v.Name] = v
+		}
+
+		for _, condition := range searchCondition {
+
+			if schemaData, ok := whereMap[condition.Name]; ok {
+
+				schemaHandler := schemaData.Handler
+
+				if len(schemaHandler) > 0 && schemaHandler != "" {
+					handlerStr := strings.Split(schemaHandler, ";")
+					hands := strings.Split(handlerStr[0], ".")
+
+					// 获取方法名称
+					handlerName := hands[0]
+					methodName := hands[1]
+					argList := []reflect.Value{}
+
+					for _, h := range handlerStr[1:] {
+						c := conditionMap[h]
+						argList = append(argList, reflect.ValueOf(c.Value))
+					}
+
+					// 获取处理器工厂
+					factory, ok := handler.GetHandlerFactory(handlerName)
+					if !ok {
+						fmt.Printf("Handler not found: %s\n", handlerName)
+						// 记录日志处理
+						break
+					}
+					// 创建处理器实例
+					instance, err := factory()
+					if err != nil {
+						fmt.Printf("Failed to create handler instance: %v\n", err)
+						// 记录日志处理
+						break
+					}
+
+					// 使用反射查找方法
+					method := reflect.ValueOf(instance).MethodByName(methodName)
+					if !method.IsValid() {
+						fmt.Printf("Method not found: %s\n", methodName)
+						// 记录日志处理
+						break
+					}
+
+					// 调用方法
+					results := method.Call(argList) // 如果方法有参数，可以在这里传入参数切片
+					condition.Value = results[0].Interface()
+				}
+
+				switch condition.Type {
 				case "eq":
-					result = append(result, v.Name+"="+"'"+v.Value+"'")
+					result = append(result, condition.Name+"="+"'"+fmt.Sprintf("%v", condition.Value)+"'")
 				case "gt":
 				case "lt":
 				case "like":
@@ -141,11 +231,11 @@ func buildWhere(arr []SearchCondition, arr2 []SearchSchemaConditions) string {
 		}
 	}
 
-	return strings.Join(result, ",")
+	return strings.Join(result, "AND ")
 }
 
 func buildOrderByStr(arr []string) string {
-	return strings.Join(arr, ",")
+	return strings.Join(arr, ", ")
 }
 
 func buildPageStr(page int, size int) string {

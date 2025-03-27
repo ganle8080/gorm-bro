@@ -20,17 +20,23 @@ type SearchSchemaColumns struct {
 }
 
 type SearchSchemaConditions struct {
-	Name string `json:"name"`
+	FieldName string `json:"field_name"`
+	Handler   string `json:"handler"`
 }
 
-func LoadSchema(searchName string) SearchSchema {
+func LoadJsonSchema(searchName string, schemaType string) (*SearchSchema, error) {
 	// 根据searchName找到对应目录下的文件
-	data, err := os.ReadFile("./schema/" + searchName + "_search_schema.json")
+	data, err := os.ReadFile("./schema/" + searchName + "_" + schemaType + "_schema.json")
+
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
+		return nil, fmt.Errorf("schema not foud. %w", err)
+	}
+	searchSchema := &SearchSchema{}
+
+	if jsonErr := json.Unmarshal(data, searchSchema); jsonErr != nil {
+		return nil, jsonErr
 	}
 
-	searchSchema := SearchSchema{}
-	json.Unmarshal(data, &searchSchema)
-	return searchSchema
+	return searchSchema, nil
+
 }

@@ -1,9 +1,11 @@
-package tools
+package orm
 
 import (
 	"encoding/json"
 	"fmt"
+	"gorm-bro/orm/handler"
 	"os"
+	"reflect"
 	"strings"
 
 	"gorm.io/gorm"
@@ -35,9 +37,7 @@ func LoadSchema(searchName string) SearchSchema {
 
 	searchSchema := SearchSchema{}
 	json.Unmarshal(data, &searchSchema)
-
 	return searchSchema
-
 }
 
 type SearchData struct {
@@ -93,17 +93,55 @@ func Search(form map[string]interface{}, db *gorm.DB) {
 
 	db.Raw(sqlStr).Scan(&result)
 
-	fmt.Printf("sqlStr: %v\n", sqlStr)
+	if len(result) > 0 {
+		for _, obj := range result {
 
-	// if len(result) > 0 {
-	// 	for _, v := range result {
+			for _, h := range handlers {
 
-	// 	}
-	// }
+				argList := []reflect.Value{}
+				// 获取字段名称
+				fieldName := h.Name
+				// 获取方法名称
+				handlerName := h.HandlerName
+				methodName := h.MethodName
 
-	fmt.Printf("handlers: %v\n", handlers)
+				for _, v := range h.Args {
+					argList = append(argList, reflect.ValueOf(obj[v]))
+				}
+
+				// 获取处理器工厂
+				factory, ok := handler.GetHandlerFactory(handlerName)
+				if !ok {
+					fmt.Printf("Handler not found: %s\n", handlerName)
+					return
+				}
+
+				// 创建处理器实例
+				instance, err := factory(db)
+				if err != nil {
+					fmt.Printf("Failed to create handler instance: %v\n", err)
+					return
+				}
+
+				// 使用反射查找方法
+				method := reflect.ValueOf(instance).MethodByName(methodName)
+				if !method.IsValid() {
+					fmt.Printf("Method not found: %s\n", methodName)
+					return
+				}
+
+				// 调用方法
+				results := method.Call(argList) // 如果方法有参数，可以在这里传入参数切片
+				if len(results) > 0 {
+					fmt.Printf("Method result: %v\n", results[0].Interface())
+				}
+				obj[fieldName] = results[0]
+			}
+		}
+	}
 
 	// 指定handler包下执行某个方法
+	fmt.Printf("result: %v\n", result)
 }
 
 func buildWhere(arr []SearchCondition, arr2 []SearchSchemaConditions) string {
@@ -145,9 +183,10 @@ func buildPageStr(page int, size int) string {
 }
 
 type FieldHandler struct {
-	Name       string
-	MethodName string
-	Args       []string
+	Name        string
+	HandlerName string
+	MethodName  string
+	Args        []string
 }
 
 func getFieldsAndHandlers(searchColumns []string, definedColumns []SearchSchemaColumns) (searchFieldList []string, deferHandlerList []FieldHandler) {
@@ -165,10 +204,12 @@ func getFieldsAndHandlers(searchColumns []string, definedColumns []SearchSchemaC
 				if v.Handler != "null" && v.Handler != "" {
 					handlerStr := strings.Split(v.Handler, ";")
 					// 这里会出现错误，做好错误处理
+					hands := strings.Split(handlerStr[0], ".")
 					fieldHandler := FieldHandler{
-						Name:       v.Alias,
-						MethodName: handlerStr[0],
-						Args:       handlerStr[1:],
+						Name:        v.Alias,
+						HandlerName: hands[0],
+						MethodName:  hands[1],
+						Args:        handlerStr[1:],
 					}
 					deferHandlerList = append(deferHandlerList, fieldHandler)
 				}
@@ -182,10 +223,12 @@ func getFieldsAndHandlers(searchColumns []string, definedColumns []SearchSchemaC
 			if v.Handler != "null" && v.Handler != "" {
 				handlerStr := strings.Split(v.Handler, ";")
 				// 这里会出现错误，做好错误处理
+				hands := strings.Split(handlerStr[0], ".")
 				fieldHandler := FieldHandler{
-					Name:       v.Alias,
-					MethodName: handlerStr[0],
-					Args:       handlerStr[1:],
+					Name:        v.Alias,
+					HandlerName: hands[0],
+					MethodName:  hands[1],
+					Args:        handlerStr[1:],
 				}
 				deferHandlerList = append(deferHandlerList, fieldHandler)
 			}

@@ -12,9 +12,9 @@ type DemoTestHandler struct {
 }
 
 // AppendStr 示例方法
-func (h *DemoTestHandler) AppendStr() string {
+func (h *DemoTestHandler) AppendStr(money interface{}) string {
 	fmt.Printf("h.db: %v\n", h.db)
-	return "Hello, World!"
+	return "Hello, World!" + fmt.Sprintf("%v", money)
 }
 
 // GetHandlerFactory 根据 handlerName 返回对应的处理器工厂

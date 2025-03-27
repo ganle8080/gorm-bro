@@ -40,7 +40,7 @@
         {
             "field_name":"null",
             "alias":"moneyStr",
-            "handler":"DemoTestHandler.AppendStr;money;age"
+            "handler":"DemoTestHandler.AppendStr;money"
         }
     ],
     "conditions":[

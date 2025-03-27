@@ -6,30 +6,23 @@ import (
 	"gorm.io/gorm"
 )
 
+// DemoTestHandler 示例处理器
 type DemoTestHandler struct {
-	db *gorm.DB
+	db gorm.DB
 }
 
-func NewDemoTestHandler(db *gorm.DB) *DemoTestHandler {
-	return &DemoTestHandler{db: db}
+// AppendStr 示例方法
+func (h *DemoTestHandler) AppendStr() string {
+	fmt.Printf("h.db: %v\n", h.db)
+	return "Hello, World!"
 }
 
-func (h *DemoTestHandler) AppendStr(str interface{}) string {
-	return "$ " + fmt.Sprintf("%s", str)
-}
-
-// demoTestHandlerFactory 是 DemoTestHandler 的工厂函数
-func demoTestHandlerFactory(args ...interface{}) (interface{}, error) {
-	if len(args) == 0 {
-		return nil, fmt.Errorf("DemoTestHandler requires at least one argument: Name")
+// GetHandlerFactory 根据 handlerName 返回对应的处理器工厂
+func GetHandlerFactory(name string) (func(*gorm.DB) (interface{}, error), bool) {
+	if name == "DemoTestHandler" {
+		return func(db *gorm.DB) (interface{}, error) {
+			return &DemoTestHandler{db: *db}, nil
+		}, true
 	}
-	db, ok := args[0].(*gorm.DB)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for Name, expected string")
-	}
-	return &DemoTestHandler{db: db}, nil
-}
-
-func init() {
-	RegisterHandler("DemoTestHandler", demoTestHandlerFactory)
+	return nil, false
 }

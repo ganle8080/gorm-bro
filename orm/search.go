@@ -75,7 +75,10 @@ func Search(form map[string]interface{}, db *gorm.DB) {
 
 	whereStr := buildWhere(searchData.Conditions, searchSchema.Conditions)
 
-	sqlStr := fmt.Sprintf("SELECT %s FROM %s WHERE %s", fieldStr, searchSchema.TableName, whereStr)
+	sqlStr := fmt.Sprintf("SELECT %s FROM %s ", fieldStr, searchSchema.TableName)
+	if len(whereStr) > 0 {
+		sqlStr = fmt.Sprintf("SELECT %s FROM %s WHERE %s", fieldStr, searchSchema.TableName, whereStr)
+	}
 
 	orderStr := buildOrderByStr(searchData.OrderBy)
 

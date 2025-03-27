@@ -59,15 +59,9 @@ func TestSearch(t *testing.T) {
 		"search_type": "list",
 		"order_by":    []string{},
 		"columns":     []string{},
-		"conditions": []map[string]interface{}{
-			{
-				"name":  "name",
-				"type":  "eq",
-				"value": "helloworld",
-			},
-		},
-		"page": 1,
-		"size": 20,
+		"conditions":  []map[string]interface{}{},
+		"page":        1,
+		"size":        20,
 	}
 
 	// 初始化数据库连接

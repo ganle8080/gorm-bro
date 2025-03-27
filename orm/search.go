@@ -48,17 +48,17 @@ func Search(db *gorm.DB, form map[string]interface{}) (interface{}, error) {
 
 	// 获取需要查询的字段
 	// fields是需要进行查询的字段，handlers是后续要对字段进行处理的操作
-	fields, handlers := getFieldsAndHandlers(searchData.Columns, searchSchema.Columns)
 
 	// 获取sql查询column部分字符串
-	columnStr := strings.Join(fields, ", ")
-
-	sqlStr := fmt.Sprintf("SELECT %s FROM %s ", columnStr, searchSchema.TableName)
 
 	// 获取sql查询where部分字符串
 	whereStr := buildWhereAndHandlers(searchData.Conditions, searchSchema.Conditions)
 
-	joinStr := buildJoins(searchSchema.TableName, searchData.Joins, searchSchema.Joins)
+	joinStr, tableStr := buildJoins(searchSchema.TableName, searchData.Joins, searchSchema.Joins)
+	fields, handlers := getFieldsAndHandlers(searchData.Columns, searchSchema.Columns, tableStr+searchData.TableName)
+	columnStr := strings.Join(fields, ", ")
+
+	sqlStr := fmt.Sprintf("SELECT %s FROM %s ", columnStr, searchSchema.TableName)
 
 	if len(joinStr) > 0 {
 		sqlStr += joinStr
@@ -136,10 +136,10 @@ func Search(db *gorm.DB, form map[string]interface{}) (interface{}, error) {
 	return result, nil
 }
 
-func buildJoins(tableName string, joins []string, searchSchemaJoins []SearchJoins) string {
+func buildJoins(tableName string, joins []string, searchSchemaJoins []SearchJoins) (string, string) {
 
 	result := []string{}
-
+	tableStr := ""
 	joinSchemaMap := map[string]SearchJoins{}
 
 	for _, v := range searchSchemaJoins {
@@ -148,13 +148,14 @@ func buildJoins(tableName string, joins []string, searchSchemaJoins []SearchJoin
 
 	for _, s := range joins {
 		if joinSchema, ok := joinSchemaMap[s]; ok {
+			tableStr += joinSchema.TargetTableName + ";"
 			joinStr := fmt.Sprintf("%s %s ON %s.%s = %s.%s", joinSchema.JoinType, joinSchema.TargetTableName, tableName, joinSchema.JoinColumn, joinSchema.TargetTableName, joinSchema.TargetJoinColumn)
 
 			result = append(result, joinStr)
 		}
 	}
 
-	return strings.Join(result, " ")
+	return strings.Join(result, " "), tableStr
 }
 
 func buildWhereAndHandlers(searchCondition []SearchCondition, searchSchemaConditions []SearchSchemaConditions) string {
@@ -253,7 +254,7 @@ type FieldHandler struct {
 	Args        []string
 }
 
-func getFieldsAndHandlers(searchColumns []string, definedColumns []SearchSchemaColumns) (searchFieldList []string, deferHandlerList []FieldHandler) {
+func getFieldsAndHandlers(searchColumns []string, definedColumns []SearchSchemaColumns, tableStr string) (searchFieldList []string, deferHandlerList []FieldHandler) {
 	// 判断searchColumns的长度
 	if len(searchColumns) > 0 {
 		complieMap := map[string]string{}
@@ -262,6 +263,13 @@ func getFieldsAndHandlers(searchColumns []string, definedColumns []SearchSchemaC
 		}
 		for _, v := range definedColumns {
 			if _, ok := complieMap[v.Alias]; ok {
+
+				fields := strings.Split(v.FieldName, ".")
+
+				if len(fields) == 0 || !strings.Contains(tableStr, fields[0]) {
+					continue
+				}
+
 				if v.FieldName != "null" && v.FieldName != "" {
 					searchFieldList = append(searchFieldList, fmt.Sprintf("%s AS %s", v.FieldName, v.Alias))
 				}
@@ -281,6 +289,13 @@ func getFieldsAndHandlers(searchColumns []string, definedColumns []SearchSchemaC
 		}
 	} else {
 		for _, v := range definedColumns {
+
+			fields := strings.Split(v.FieldName, ".")
+
+			if len(fields) == 0 || !strings.Contains(tableStr, fields[0]) {
+				continue
+			}
+
 			if v.FieldName != "null" && v.FieldName != "" {
 				searchFieldList = append(searchFieldList, fmt.Sprintf("%s AS %s", v.FieldName, v.Alias))
 			}

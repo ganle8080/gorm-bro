@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"gorm-bro/src"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -16,7 +15,19 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("db: %v\n", db)
-	db.AutoMigrate(&src.DemoTest{})
-	db.AutoMigrate(&src.DemoOther{})
+	data := []map[string]interface{}{}
+	db.Raw("desc demo_test").Scan(&data)
+	fmt.Printf("data: %v\n", data[0])
 }
+
+/*
+
+SELECT
+    COLUMN_NAME,
+    COLUMN_COMMENT
+FROM
+    information_schema.COLUMNS
+WHERE
+    TABLE_SCHEMA = 'demo_go'
+    AND TABLE_NAME = 'demo_test';
+*/

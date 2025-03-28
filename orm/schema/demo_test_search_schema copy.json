@@ -1,79 +1,14 @@
 {
-    "table_name": "demo_test",
-    "order": [
-        "id desc"
-    ],
-    "columns": [
+    "table_name":"demo_test",
+    "columns":[
         {
-            "field_name": "demo_test.id",
-            "alias": "id",
-            "handler": ""
-        },
-        {
-            "field_name": "demo_test.created_at",
-            "alias": "created_at",
-            "handler": ""
-        },
-        {
-            "field_name": "demo_test.updated_at",
-            "alias": "updated_at",
-            "handler": ""
-        },
-        {
-            "field_name": "demo_test.deleted_at",
-            "alias": "deleted_at",
-            "handler": "null"
-        },
-        {
-            "field_name": "demo_test.name",
-            "alias": "name",
-            "handler": ""
-        },
-        {
-            "field_name": "demo_test.age",
-            "alias": "age",
-            "handler": ""
-        },
-        {
-            "field_name": "demo_test.money",
-            "alias": "money",
-            "handler": ""
-        },
-        {
-            "field_name": "null",
-            "alias": "moneyStr",
-            "handler": ""
+            "field_id":"",
+            "alias":"",
+            "description":""
         }
     ],
     "joins":[],
-    "conditions": [
-        {
-            "field_name": "id",
-            "handler": ""
-        },
-        {
-            "field_name": "created_at",
-            "handler": ""
-        },
-        {
-            "field_name": "updated_at",
-            "handler": ""
-        },
-        {
-            "field_name": "deleted_at",
-            "handler": ""
-        },
-        {
-            "field_name": "name",
-            "handler": ""
-        },
-        {
-            "field_name": "age",
-            "handler": ""
-        },
-        {
-            "field_name": "money",
-            "handler": ""
-        }
-    ]
+    "conditions":[],
+    "orders":[],
+    "groups":[]
 }

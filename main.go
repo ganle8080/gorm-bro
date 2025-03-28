@@ -17,5 +17,6 @@ func main() {
 	}
 
 	fmt.Printf("db: %v\n", db)
+	db.AutoMigrate(&src.DemoTest{})
 	db.AutoMigrate(&src.DemoOther{})
 }

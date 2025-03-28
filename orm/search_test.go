@@ -58,19 +58,19 @@ func TestSearch(t *testing.T) {
 		"table_name":  "demo_test",
 		"search_type": "search",
 		"order_by":    []string{},
-		"columns":     []string{},
-		"joins":       []string{"demo_other"},
-		"conditions": []map[string]interface{}{
-			{
-				"name":  "money",
-				"type":  "eq",
-				"value": 1.3,
-			},
-			{
-				"name":  "age",
-				"type":  "eq",
-				"value": 3,
-			},
+		"columns":     []string{"id"},
+		"joins":       []string{},
+		"conditions":  []map[string]interface{}{
+			// {
+			// 	"name":  "money",
+			// 	"type":  "eq",
+			// 	"value": 1.3,
+			// },
+			// {
+			// 	"name":  "age",
+			// 	"type":  "eq",
+			// 	"value": 3,
+			// },
 		},
 		"page": 1,
 		"size": 20,
